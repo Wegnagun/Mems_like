@@ -2,7 +2,7 @@
 
 ### мои заметки  
 
-git commit -m 'start new branch backend-1 and start new command'  
+git commit -m 'start new branch backend-1 and start new command  
 git push --set-upstream origin backend-1  
 
 
@@ -38,7 +38,7 @@ git push --set-upstream origin backend-1
 
 Реализовать на Django
 Каждый промежуточный шаг отображать в отдельной ветке гита (backend-1, 
-backend-2, ..., backend-5)`
+backend-2, ..., backend-5)
 ---
 
 ## Автор
