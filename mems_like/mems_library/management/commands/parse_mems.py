@@ -1,6 +1,7 @@
-import os
-import requests
 import datetime
+import os
+
+import requests
 from django.core.management.base import BaseCommand
 from dotenv import load_dotenv
 
@@ -18,13 +19,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """ Получаем данные с ВК и добавляем POSTS постов в базу """
-        """ # image type = y заметка для поиска изображения в респонсе) """
         params = {
             'access_token': ACCESS_TOKEN,
             'owner_id': GROUP_ID,
             'count': POSTS_COUNT,
             'v': API_VERSION,
-            'offset': 0
+            'offset': 6
         }
         try:
             api_response = requests.get(
@@ -40,6 +40,7 @@ class Command(BaseCommand):
                 if (
                     i.get("attachments")[0].get('type') != "link"
                     and count != POSTS
+                    and i.get("attachments")[0].get('type') != "video"
                 ):
                     id = i.get('id')
                     text = i.get('text')
@@ -51,6 +52,15 @@ class Command(BaseCommand):
                         else i.get('from_id')
                     )
                     likes_count = i.get('likes').get('count')
+                    image = [
+                        item.get('url') for item in
+                        i.get('attachments')[0].get('photo').get('sizes')
+                        if item.get('type') == 'y'
+                    ][0]
+                    url = (
+                        image if image is not None
+                        else 'Изображение отсутсвует'
+                    )
                     count += 1
                     print(
                         f"{count}. Пост с id {id}:\n    "
@@ -58,8 +68,7 @@ class Command(BaseCommand):
                         f"Дата и время публикации:  "
                         f"{normal_date:%Y-%m-%d %H:%M:%S}\n    "
                         f"Автор поста: {post_author}\n    "
+                        f"Ссылка на изображение: {url}\n    "
                         f"Налукасили: {likes_count}\n"
                         f"'==============================================='"
                     )
-
-
