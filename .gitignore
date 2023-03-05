@@ -3,7 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-mems_like/data/
+data/
+media/
+static/
 
 # C extensions
 *.so

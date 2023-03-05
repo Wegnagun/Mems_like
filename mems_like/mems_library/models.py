@@ -1,13 +1,15 @@
-from django.db import models
-from urllib import request
-import os
+from tempfile import NamedTemporaryFile
+from urllib.request import urlopen
+
 from django.core.files import File
+from django.db import models
 
 
 class Mem(models.Model):
     """ Модель мемов. """
 
-    mem_id = models.IntegerField(
+    mem_id = models.CharField(
+        max_length=50,
         unique=True,
         error_messages={
             'unique': "Мем с таким id уже создан."
@@ -20,7 +22,9 @@ class Mem(models.Model):
             'unique': "Мем с таким описанием уже создан."
         }
     )
-    image_url = models.URLField()
+    image_url = models.URLField(
+        max_length=300,
+    )
     image = models.ImageField(
         verbose_name='Мем',
         upload_to='mems/images'
@@ -32,21 +36,22 @@ class Mem(models.Model):
         max_length=200,
         verbose_name='Автор мема'
     )
-    likes_count = models.IntegerField()
+    likes_count = models.CharField(
+        max_length=50,
+    )
 
-    def get_remote_image(self):
+    def save(self, *args, **kwargs):
         if self.image_url and not self.image:
-            result = request.urlretrieve(self.image_url)
-            self.image.save(
-                os.path.basename(self.image_url),
-                File(open(result[0], 'rb'))
-            )
-            self.save()
+            img_temp = NamedTemporaryFile(delete=True)
+            img_temp.write(urlopen(self.image_url).read())
+            img_temp.flush()
+            self.image.save(f"image_{self.pk}", File(img_temp))
+        super(Mem, self).save(*args, **kwargs)
 
     class Meta:
         ordering = ('-pub_date',)
         verbose_name = 'Мем'
-        verbose_name_plural = 'Мемы'
+        verbose_name_plural = 'Мемов'
 
     def __str__(self):
         return self.text
