@@ -3,37 +3,37 @@ import os
 import json
 
 import requests
+from mems_library.models import Mem
 from django.core.management.base import BaseCommand
 from dotenv import load_dotenv
 
 load_dotenv()
 
 GROUP_ID = -45045130
-POSTS_COUNT = 10
+POSTS_COUNT = 25
 API_VERSION = 5.81
 ACCESS_TOKEN = os.environ.get('VK_TOKEN', 'enter you VK Token')
-POSTS = 10
-TABLES = [()]
+POSTS = 20
 
 
 def show_data(
-    id: int, count: int, text: str, pub_date: int,
-    post_author: int, url: str, likes_count: int
+    mem_id: int, count: int, text: str, pub_date,
+    post_author: int, image_url: str, likes_count: int
 ) -> str:
-    normal_date = datetime.datetime.fromtimestamp(pub_date)
     return (
-        f"{count}. Пост с id {id}:\n    "
+        f"{count}. Пост с id {mem_id}:\n    "
         f"Заголовок: {text}\n    "
         f"Дата и время публикации:  "
-        f"{normal_date:%Y-%m-%d %H:%M:%S}\n    "
+        f"{pub_date:%Y-%m-%d %H:%M:%S}\n    "
         f"Автор поста: {post_author}\n    "
-        f"Ссылка на изображение: {url}\n    "
+        f"Ссылка на изображение: {image_url}\n    "
         f"Налукасили: {likes_count}\n"
         f"'=============================================='"
     )
 
 
 class Command(BaseCommand):
+    """ Команда парсинга мемов и сохранения в бд. """
     help = 'Загрузите все мемы в вашу базу (используя API ВКонтакте).'
 
     def handle(self, *args, **options):
@@ -58,17 +58,19 @@ class Command(BaseCommand):
             data = []
             for i in api_response.get("response").get('items'):
                 temp_data = {
-                    'id': 0, 'text': '', 'pub_date': 0,
-                    'post_author': '', 'url': '', 'likes_count': 0
+                    'mem_id': 0, 'text': '', 'pub_date': '',
+                    'post_author': '', 'image_url': '', 'likes_count': 0
                 }
                 if (
                     i.get("attachments")[0].get('type') != "link"
-                    and temp_data['count'] != POSTS
+                    and count != POSTS
                     and i.get("attachments")[0].get('type') != "video"
                 ):
-                    temp_data['id'] = i.get('id')
+                    temp_data['mem_id'] = i.get('id')
                     temp_data['text'] = i.get('text')
-                    temp_data['pub_date'] = i.get('date')
+                    temp_data['pub_date'] = datetime.datetime.fromtimestamp(
+                        i.get('date')
+                    )
                     temp_data['post_author'] = (
                         'Админ группы'
                         if i.get('from_id') == GROUP_ID
@@ -80,21 +82,35 @@ class Command(BaseCommand):
                         i.get('attachments')[0].get('photo').get('sizes')
                         if item.get('type') == 'y'
                     ][0]
-                    temp_data['url'] = (
+                    temp_data['image_url'] = (
                         image if image is not None
                         else 'Изображение отсутсвует'
                     )
                     count += 1
                     data.append(temp_data)
-                    print(show_data(**temp_data))
+                    print(show_data(**temp_data, count=count))
 
             if options['r']:
                 with open(
                     f'data/mems.json', 'w', encoding="utf-8"
                 ) as file:
-                    json.dump(data, file, ensure_ascii=False)
+                    json.dump(data, file, default=str, ensure_ascii=False)
                     self.stdout.write(self.style.SUCCESS(
                         'Данные успешно записаны в mems.json'))
+                    file.close()
+                    try:
+                        file = open('data/mems.json',
+                                    'r', encoding='utf-8')
+                    except IOError:
+                        self.stdout.write(self.style.ERROR(
+                            'Не удалось открыть файл!'))
+                    else:
+                        with file:
+                            reader = json.load(file)
+                            Mem.objects.bulk_create(
+                                Mem(**data) for data in reader)
+                            self.stdout.write(self.style.SUCCESS(
+                                f'Модель Mem обновлена!'))
 
     def add_arguments(self, parser):
         parser.add_argument(
