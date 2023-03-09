@@ -8,7 +8,7 @@ from .models import Mem
 @admin.register(Mem)
 class MemAdmin(admin.ModelAdmin):
     list_display = (
-        'mem_id', 'img', 'text', 'pub_date', 'post_author', 'likes_count'
+        'id', 'mem_id', 'img', 'text', 'pub_date', 'post_author', 'likes_count'
     )
     save_on_top = True
 

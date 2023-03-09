@@ -55,3 +55,18 @@ class Mem(models.Model):
 
     def __str__(self):
         return self.text
+
+
+# class LikeDislike(models.Model):
+#     LIKE = 1
+#     DISLIKE = -1
+#
+#     VOTES = (
+#         (LIKE, 'Like'),
+#         (DISLIKE, 'Dislike')
+#     )
+#
+#     vote = models.SmallIntegerField(
+#         verbose_name='Голос',
+#         choices=VOTES
+#     )

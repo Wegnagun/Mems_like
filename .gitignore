@@ -3,9 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-data/
-media/
-static/
 
 # C extensions
 *.so
@@ -105,6 +102,9 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+mems_like/data/
+media/
+static/
 # Environments
 .env
 .venv
