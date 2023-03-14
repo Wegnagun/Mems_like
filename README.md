@@ -1,9 +1,8 @@
 # Mems_like  
 
 ### мои заметки  
-
-git commit -m 'start new branch backend-1 and start new command  
-git push --set-upstream origin backend-1  
+ 
+git push --set-upstream origin backend-2  
 
 
 ---  
