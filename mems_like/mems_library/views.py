@@ -1,7 +1,6 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
-from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from .models import Mem
 from .serializers import MemSerializer
@@ -14,12 +13,27 @@ class MemViewSet(viewsets.ModelViewSet):
     serializer_class = MemSerializer
 
     @action(
-        detail=False,
+        detail=True,
         methods=('post',),
         url_path='like',
     )
-    def add_like(self, request):
-        mem = Mem.objects.filter(
-            mem_id=request.id
+    def add_like(self, request, pk):
+        mem = Mem.objects.get(pk=pk)
+        mem.likes_count = int(mem.likes_count) + 1
+        mem.save()
+        return Response(
+            {'status': 'полайкано', "теперь лаков": mem.likes_count}
         )
-        return 'ssss'
+
+    @action(
+        detail=True,
+        methods=('post',),
+        url_path='dislike',
+    )
+    def add_like(self, request, pk):
+        mem = Mem.objects.get(pk=pk)
+        mem.likes_count = int(mem.likes_count) - 1
+        mem.save()
+        return Response(
+            {'status': 'надизлайкано(', "теперь лаков": mem.likes_count}
+        )

@@ -8,8 +8,7 @@ from django.db import models
 class Mem(models.Model):
     """ Модель мемов. """
 
-    mem_id = models.CharField(
-        max_length=50,
+    mem_id = models.IntegerField(
         unique=True,
         error_messages={
             'unique': "Мем с таким id уже создан."
@@ -36,8 +35,8 @@ class Mem(models.Model):
         max_length=200,
         verbose_name='Автор мема'
     )
-    likes_count = models.CharField(
-        max_length=50,
+    likes_count = models.IntegerField(
+        verbose_name='Количество лайков'
     )
 
     def save(self, *args, **kwargs):

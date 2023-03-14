@@ -80,7 +80,7 @@ class Command(BaseCommand):
                     image = [
                         item.get('url') for item in
                         i.get('attachments')[0].get('photo').get('sizes')
-                        if item.get('type') == 'y'
+                        if item.get('type') == 'r'
                     ][0]
                     temp_data['image_url'] = (
                         image if image is not None
