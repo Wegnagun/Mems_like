@@ -30,7 +30,7 @@ class MemViewSet(viewsets.ModelViewSet):
         methods=('post',),
         url_path='dislike',
     )
-    def add_like(self, request, pk):
+    def delete_like(self, request, pk):
         mem = Mem.objects.get(pk=pk)
         mem.likes_count = int(mem.likes_count) - 1
         mem.save()
