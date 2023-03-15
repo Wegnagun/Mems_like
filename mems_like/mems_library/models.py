@@ -44,28 +44,13 @@ class Mem(models.Model):
             img_temp = NamedTemporaryFile(delete=True)
             img_temp.write(urlopen(self.image_url).read())
             img_temp.flush()
-            self.image.save(f"image_{self.pk}", File(img_temp))
+            self.image.save(f"image_{self.pk}.png", File(img_temp))
         super(Mem, self).save(*args, **kwargs)
 
     class Meta:
         ordering = ('-pub_date',)
         verbose_name = 'Мем'
-        verbose_name_plural = 'Мемов'
+        verbose_name_plural = 'Мемы'
 
     def __str__(self):
         return self.text
-
-
-# class LikeDislike(models.Model):
-#     LIKE = 1
-#     DISLIKE = -1
-#
-#     VOTES = (
-#         (LIKE, 'Like'),
-#         (DISLIKE, 'Dislike')
-#     )
-#
-#     vote = models.SmallIntegerField(
-#         verbose_name='Голос',
-#         choices=VOTES
-#     )

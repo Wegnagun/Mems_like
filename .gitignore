@@ -102,7 +102,7 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-mems_like/data/
+data/
 media/
 static/
 # Environments
