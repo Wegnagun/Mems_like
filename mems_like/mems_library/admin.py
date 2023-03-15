@@ -15,7 +15,7 @@ class MemAdmin(admin.ModelAdmin):
     @admin.display(description='Картинка мема')
     def img(self, obj):
         return format_html(
-            f'<img src={obj.image_url} '
+            f'<img src={obj.image} '
             f'alt="не загрузилась" style=" width: 200px;">'
         )
 

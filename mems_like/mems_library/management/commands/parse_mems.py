@@ -18,7 +18,7 @@ POSTS = 20
 
 def show_data(
     mem_id: int, count: int, text: str, pub_date,
-    post_author: int, image_url: str, likes_count: int
+    post_author: int, image: str, likes_count: int
 ) -> str:
     return (
         f"{count}. Пост с id {mem_id}:\n    "
@@ -26,7 +26,7 @@ def show_data(
         f"Дата и время публикации:  "
         f"{pub_date:%Y-%m-%d %H:%M:%S}\n    "
         f"Автор поста: {post_author}\n    "
-        f"Ссылка на изображение: {image_url}\n    "
+        f"Изображение: {image}\n    "
         f"Налукасили: {likes_count}\n"
         f"'=============================================='"
     )
@@ -59,7 +59,7 @@ class Command(BaseCommand):
             for i in api_response.get("response").get('items'):
                 temp_data = {
                     'mem_id': 0, 'text': '', 'pub_date': '',
-                    'post_author': '', 'image_url': '', 'likes_count': 0
+                    'post_author': '', 'image': '', 'likes_count': 0
                 }
                 if (
                     i.get("attachments")[0].get('type') != "link"
@@ -82,7 +82,7 @@ class Command(BaseCommand):
                         i.get('attachments')[0].get('photo').get('sizes')
                         if item.get('type') == 'r'
                     ][0]
-                    temp_data['image_url'] = (
+                    temp_data['image'] = (
                         image if image is not None
                         else 'Изображение отсутсвует'
                     )
