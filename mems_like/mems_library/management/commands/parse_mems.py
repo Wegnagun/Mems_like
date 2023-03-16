@@ -1,19 +1,24 @@
 import datetime
-import os
 import json
+import os
+from io import BytesIO
 
 import requests
-from mems_library.models import Mem
+from PIL import Image
 from django.core.management.base import BaseCommand
 from dotenv import load_dotenv
+from django.core.files.temp import NamedTemporaryFile
+from django.core import files
+
+from mems_library.models import Mem
 
 load_dotenv()
 
 GROUP_ID = -45045130
-POSTS_COUNT = 25
+POSTS_COUNT = 4
 API_VERSION = 5.81
 ACCESS_TOKEN = os.environ.get('VK_TOKEN', 'enter you VK Token')
-POSTS = 20
+POSTS = 4
 
 
 def show_data(
@@ -32,12 +37,25 @@ def show_data(
     )
 
 
+def download_img(image_url, mem_id):
+    image_name = f'{mem_id}.png'
+    response = requests.get(image_url, stream=True)
+    image_temp_file = NamedTemporaryFile()
+    for chunk in response.iter_content(1024 * 8):
+        if not chunk:
+            break
+        image_temp_file.write(chunk)
+    image_temp_file.flush()
+    temp_file = files.File(image_temp_file, name=image_name)
+    return temp_file
+
+
 class Command(BaseCommand):
     """ Команда парсинга мемов и сохранения в бд. """
     help = 'Загрузите все мемы в вашу базу (используя API ВКонтакте).'
 
     def handle(self, *args, **options):
-        """ Получаем данные с ВК и добавляем POSTS постов в базу """
+        """ Получаем данные с ВК и добавляем посты в базу """
         params = {
             'access_token': ACCESS_TOKEN,
             'owner_id': GROUP_ID,
@@ -82,10 +100,11 @@ class Command(BaseCommand):
                         i.get('attachments')[0].get('photo').get('sizes')
                         if item.get('type') == 'r'
                     ][0]
-                    temp_data['image'] = (
-                        image if image is not None
-                        else 'Изображение отсутсвует'
-                    )
+                    # temp_data['image'] = (
+                    #     image if image is not None
+                    #     else 'Изображение отсутсвует'
+                    # )
+                    temp_data['image'] = download_img(image, temp_data['mem_id'])
                     count += 1
                     data.append(temp_data)
                     print(show_data(**temp_data, count=count))
