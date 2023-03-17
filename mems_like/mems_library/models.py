@@ -1,4 +1,7 @@
 from django.db import models
+from django.core.files import File
+from urllib.request import urlopen
+from tempfile import NamedTemporaryFile
 
 
 class Mem(models.Model):
@@ -21,6 +24,7 @@ class Mem(models.Model):
         verbose_name='Мем',
         upload_to='mems/images'
     )
+    image_url = models.URLField()
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации'
     )
@@ -31,6 +35,14 @@ class Mem(models.Model):
     likes_count = models.IntegerField(
         verbose_name='Количество лайков'
     )
+
+    def save(self, *args, **kwargs):
+        if self.image_url and not self.image:
+            img_temp = NamedTemporaryFile()
+            img_temp.write(urlopen(self.image_url).read())
+            img_temp.flush()
+            self.image.save(f"image_{self.pk}.png", File(img_temp))
+        self.save()
 
     class Meta:
         ordering = ('-pub_date',)

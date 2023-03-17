@@ -1,14 +1,12 @@
 import datetime
 import json
 import os
-from io import BytesIO
 
 import requests
-from PIL import Image
+from django.core import files
+from django.core.files.temp import NamedTemporaryFile
 from django.core.management.base import BaseCommand
 from dotenv import load_dotenv
-from django.core.files.temp import NamedTemporaryFile
-from django.core import files
 
 from mems_library.models import Mem
 
@@ -23,7 +21,7 @@ POSTS = 4
 
 def show_data(
     mem_id: int, count: int, text: str, pub_date,
-    post_author: int, image: str, likes_count: int
+    post_author: int, likes_count: int, image_url: str
 ) -> str:
     return (
         f"{count}. Пост с id {mem_id}:\n    "
@@ -31,7 +29,7 @@ def show_data(
         f"Дата и время публикации:  "
         f"{pub_date:%Y-%m-%d %H:%M:%S}\n    "
         f"Автор поста: {post_author}\n    "
-        f"Изображение: {image}\n    "
+        f"Ссылка на изображение: {image_url}\n    "
         f"Налукасили: {likes_count}\n"
         f"'=============================================='"
     )
@@ -40,7 +38,7 @@ def show_data(
 def download_img(image_url, mem_id):
     image_name = f'{mem_id}.png'
     response = requests.get(image_url, stream=True)
-    image_temp_file = NamedTemporaryFile()
+    image_temp_file = NamedTemporaryFile(delete=False)
     for chunk in response.iter_content(1024 * 8):
         if not chunk:
             break
@@ -76,8 +74,8 @@ class Command(BaseCommand):
             data = []
             for i in api_response.get("response").get('items'):
                 temp_data = {
-                    'mem_id': 0, 'text': '', 'pub_date': '',
-                    'post_author': '', 'image': '', 'likes_count': 0
+                    'mem_id': 0, 'text': '', 'pub_date': '', 'image_url': '',
+                    'post_author': '', 'likes_count': 0
                 }
                 if (
                     i.get("attachments")[0].get('type') != "link"
@@ -95,16 +93,12 @@ class Command(BaseCommand):
                         else i.get('from_id')
                     )
                     temp_data['likes_count'] = i.get('likes').get('count')
-                    image = [
+                    image_url = [
                         item.get('url') for item in
                         i.get('attachments')[0].get('photo').get('sizes')
                         if item.get('type') == 'r'
                     ][0]
-                    # temp_data['image'] = (
-                    #     image if image is not None
-                    #     else 'Изображение отсутсвует'
-                    # )
-                    temp_data['image'] = download_img(image, temp_data['mem_id'])
+                    temp_data['image_url'] = image_url
                     count += 1
                     data.append(temp_data)
                     print(show_data(**temp_data, count=count))
